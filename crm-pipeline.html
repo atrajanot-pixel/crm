@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM Pipeline de Vendas</title>
+<style>
+  :root {
+    --bg: #f4f5f7;
+    --sidebar-bg: #1a1a2e;
+    --sidebar-text: #a8b0c0;
+    --sidebar-active: #ffffff;
+    --sidebar-accent: #f5a623;
+    --card-bg: #ffffff;
+    --card-border: #e2e8f0;
+    --text-primary: #1a202c;
+    --text-secondary: #718096;
+    --text-muted: #a0aec0;
+    --col-novo: #718096;
+    --col-abordado: #f5a623;
+    --col-conversa: #3b82f6;
+    --col-qualificado: #8b5cf6;
+    --col-negociacao: #f97316;
+    --col-fechado: #10b981;
+    --badge-bg: #e2e8f0;
+    --input-bg: #ffffff;
+    --input-border: #cbd5e0;
+    --btn-primary: #f5a623;
+    --btn-primary-text: #1a202c;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.10);
+    --radius: 8px;
+    --radius-lg: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+    font-size: 13px;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 200px;
+    min-width: 200px;
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    padding: 16px 0;
+  }
+  .sidebar-logo {
+    padding: 8px 20px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: var(--btn-primary);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px; color: #1a202c;
+  }
+  .logo-text { color: #fff; font-weight: 600; font-size: 14px; }
+  .logo-sub { color: var(--sidebar-text); font-size: 10px; }
+  .sidebar-nav { flex: 1; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 20px;
+    color: var(--sidebar-text);
+    cursor: pointer;
+    border-radius: 0;
+    transition: all 0.15s;
+    font-size: 13px;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+  .nav-item.active { background: rgba(245,166,35,0.15); color: var(--sidebar-active); border-left: 3px solid var(--btn-primary); }
+  .nav-icon { font-size: 16px; }
+  .sidebar-user {
+    padding: 14px 20px;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .user-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: #3b82f6; display: flex; align-items: center;
+    justify-content: center; color: #fff; font-weight: 600; font-size: 12px;
+  }
+  .user-name { color: #fff; font-size: 12px; font-weight: 500; }
+  .user-role { color: var(--sidebar-text); font-size: 10px; }
+
+  /* MAIN */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* TOPBAR */
+  .topbar {
+    background: #fff;
+    border-bottom: 1px solid var(--card-border);
+    padding: 0 24px;
+    height: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 16px; }
+  .breadcrumb { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .page-title { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+  .btn {
+    padding: 7px 14px; border-radius: var(--radius);
+    border: 1px solid var(--input-border);
+    background: #fff; cursor: pointer; font-size: 12px;
+    color: var(--text-primary); transition: all 0.15s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .btn:hover { background: var(--bg); }
+  .btn-primary {
+    background: var(--btn-primary); color: var(--btn-primary-text);
+    border-color: var(--btn-primary); font-weight: 600;
+  }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-green { background: #10b981; color: #fff; border-color: #10b981; font-weight: 600; }
+  .btn-green:hover { background: #059669; }
+
+  /* TABS + FILTERS */
+  .toolbar {
+    background: #fff;
+    border-bottom: 1px solid var(--card-border);
+    padding: 10px 24px;
+    display: flex; align-items: center; gap: 12px;
+    flex-shrink: 0; flex-wrap: wrap;
+  }
+  .tabs { display: flex; gap: 4px; }
+  .tab {
+    padding: 6px 14px; border-radius: 20px; border: 1px solid transparent;
+    font-size: 12px; cursor: pointer; font-weight: 500; transition: all 0.15s;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .tab.active { background: var(--btn-primary); color: #1a202c; border-color: var(--btn-primary); }
+  .tab:not(.active) { background: var(--bg); color: var(--text-secondary); border-color: var(--card-border); }
+  .tab:not(.active):hover { background: #e2e8f0; }
+  .search-wrap { flex: 1; min-width: 200px; position: relative; }
+  .search-wrap input {
+    width: 100%; padding: 7px 12px 7px 34px;
+    border: 1px solid var(--input-border); border-radius: var(--radius);
+    font-size: 12px; background: var(--input-bg); color: var(--text-primary);
+    outline: none;
+  }
+  .search-wrap input:focus { border-color: #3b82f6; }
+  .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 14px; }
+  .filter-select {
+    padding: 6px 10px; border: 1px solid var(--input-border); border-radius: var(--radius);
+    font-size: 12px; background: var(--input-bg); color: var(--text-primary);
+    cursor: pointer; outline: none;
+  }
+  .badge-count {
+    background: #fee2e2; color: #dc2626; font-size: 10px; font-weight: 700;
+    padding: 2px 6px; border-radius: 10px;
+  }
+
+  /* KANBAN */
+  .kanban-wrap {
+    flex: 1; overflow-x: auto; overflow-y: hidden;
+    padding: 16px 24px;
+  }
+  .kanban-board {
+    display: flex; gap: 14px;
+    height: 100%; min-height: 0;
+    width: max-content;
+    min-width: 100%;
+  }
+  .kanban-col {
+    width: 240px; min-width: 240px;
+    display: flex; flex-direction: column;
+  }
+  .col-header {
+    padding: 10px 4px 8px;
+    display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+  }
+  .col-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .col-name { font-weight: 600; font-size: 13px; flex: 1; }
+  .col-count {
+    background: var(--badge-bg); color: var(--text-secondary);
+    font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 10px;
+  }
+  .col-body {
+    flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
+    padding: 2px 2px 8px;
+  }
+  .col-body::-webkit-scrollbar { width: 4px; }
+  .col-body::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 4px; }
+
+  /* LEAD CARD */
+  .lead-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius-lg);
+    padding: 12px;
+    cursor: pointer;
+    transition: box-shadow 0.15s, transform 0.15s;
+    position: relative;
+  }
+  .lead-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+  .lead-card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 6px; }
+  .lead-name { font-weight: 600; font-size: 12px; color: var(--text-primary); line-height: 1.3; }
+  .lead-score {
+    font-size: 11px; font-weight: 700; padding: 2px 6px;
+    border-radius: 6px; min-width: 26px; text-align: center; flex-shrink: 0;
+  }
+  .score-high { background: #dcfce7; color: #15803d; }
+  .score-mid { background: #fef9c3; color: #854d0e; }
+  .score-low { background: #fee2e2; color: #b91c1c; }
+  .lead-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px; }
+  .tag {
+    font-size: 10px; padding: 2px 7px; border-radius: 10px;
+    background: #e0e7ff; color: #3730a3; font-weight: 500;
+  }
+  .tag.city { background: #f1f5f9; color: #475569; }
+  .lead-actions { display: flex; gap: 6px; border-top: 1px solid var(--card-border); padding-top: 8px; margin-top: 4px; }
+  .action-btn {
+    flex: 1; padding: 5px; border-radius: 6px; border: 1px solid var(--card-border);
+    background: #fff; cursor: pointer; font-size: 11px; color: var(--text-secondary);
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+    transition: all 0.12s;
+  }
+  .action-btn:hover { background: #f0fdf4; color: #15803d; border-color: #86efac; }
+  .action-btn.call:hover { background: #eff6ff; color: #1d4ed8; border-color: #93c5fd; }
+  .action-btn.whatsapp:hover { background: #f0fdf4; color: #15803d; border-color: #86efac; }
+
+  /* MODALS */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45); z-index: 1000;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #fff; border-radius: var(--radius-lg);
+    width: 520px; max-width: 95vw; max-height: 90vh;
+    overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  }
+  .modal-header {
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid var(--card-border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-title { font-size: 16px; font-weight: 700; }
+  .modal-close {
+    width: 28px; height: 28px; border-radius: 6px; border: none;
+    background: var(--bg); cursor: pointer; font-size: 16px; color: var(--text-secondary);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .modal-close:hover { background: #fee2e2; color: #dc2626; }
+  .modal-body { padding: 18px 22px; }
+  .form-group { margin-bottom: 14px; }
+  .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .form-input, .form-select, .form-textarea {
+    width: 100%; padding: 8px 12px;
+    border: 1px solid var(--input-border); border-radius: var(--radius);
+    font-size: 13px; color: var(--text-primary); outline: none;
+    background: var(--input-bg); font-family: inherit;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: #3b82f6; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-textarea { min-height: 80px; resize: vertical; }
+  .modal-footer {
+    padding: 14px 22px;
+    border-top: 1px solid var(--card-border);
+    display: flex; gap: 8px; justify-content: flex-end;
+  }
+
+  /* SEARCH RESULTS */
+  .results-list { display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow-y: auto; }
+  .result-item {
+    padding: 10px 12px; border: 1px solid var(--card-border);
+    border-radius: var(--radius); cursor: pointer; transition: all 0.12s;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .result-item:hover { background: #f8fafc; border-color: #3b82f6; }
+  .result-item.selected { background: #eff6ff; border-color: #3b82f6; }
+  .result-name { font-weight: 600; font-size: 13px; }
+  .result-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .result-check { color: #3b82f6; font-size: 16px; }
+
+  /* WA MODAL */
+  .wa-preview {
+    background: #e5ddd5; border-radius: var(--radius); padding: 16px;
+    margin-top: 10px; min-height: 80px;
+  }
+  .wa-bubble {
+    background: #fff; border-radius: 8px; padding: 10px 12px;
+    max-width: 85%; font-size: 13px; line-height: 1.5;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  }
+  .wa-time { font-size: 10px; color: #999; text-align: right; margin-top: 4px; }
+
+  /* STATUS BAR */
+  .status-bar {
+    padding: 6px 24px;
+    background: #f0fdf4; border-top: 1px solid #bbf7d0;
+    font-size: 12px; color: #15803d; display: none; align-items: center; gap: 6px;
+  }
+  .status-bar.visible { display: flex; }
+
+  /* CONFIG PANEL */
+  .config-panel {
+    display: none; position: fixed; right: 0; top: 0; bottom: 0;
+    width: 360px; background: #fff; border-left: 1px solid var(--card-border);
+    z-index: 900; box-shadow: -4px 0 20px rgba(0,0,0,0.08);
+    flex-direction: column;
+  }
+  .config-panel.open { display: flex; }
+  .config-header {
+    padding: 16px 20px; border-bottom: 1px solid var(--card-border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .config-body { padding: 20px; flex: 1; overflow-y: auto; }
+  .config-section { margin-bottom: 20px; }
+  .config-section-title { font-weight: 700; font-size: 13px; margin-bottom: 10px; color: var(--text-primary); }
+  .api-status {
+    padding: 8px 12px; border-radius: var(--radius);
+    font-size: 12px; display: flex; align-items: center; gap: 8px; margin-top: 6px;
+  }
+  .api-status.ok { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+  .api-status.pending { background: #fffbeb; color: #92400e; border: 1px solid #fcd34d; }
+  .api-status-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+
+  /* SEGMENTS GRID */
+  .segments-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .seg-btn {
+    padding: 6px 8px; border: 1px solid var(--card-border); border-radius: 6px;
+    font-size: 11px; cursor: pointer; text-align: center;
+    background: #fff; transition: all 0.12s; color: var(--text-secondary);
+  }
+  .seg-btn.active { background: #dbeafe; border-color: #93c5fd; color: #1d4ed8; font-weight: 600; }
+  .seg-btn:hover:not(.active) { background: var(--bg); }
+
+  /* LOADING */
+  .loading { text-align: center; padding: 24px; color: var(--text-muted); font-size: 13px; }
+  .spinner {
+    display: inline-block; width: 20px; height: 20px;
+    border: 2px solid var(--card-border); border-top-color: #3b82f6;
+    border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .empty-col {
+    border: 2px dashed var(--card-border); border-radius: var(--radius-lg);
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted); font-size: 12px; min-height: 80px;
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">CR</div>
+    <div><div class="logo-text">CRM Pro</div><div class="logo-sub">Painel comercial</div></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-item active">
+      <span class="nav-icon">📊</span> Pipeline
+    </div>
+    <div class="nav-item" onclick="openSearchModal()">
+      <span class="nav-icon">🔍</span> Buscar Leads
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">💬</span> WhatsApp
+    </div>
+    <div class="nav-item" onclick="openConfig()">
+      <span class="nav-icon">⚙️</span> Configurações
+    </div>
+  </nav>
+  <div class="sidebar-user">
+    <div class="user-avatar">CO</div>
+    <div><div class="user-name">CO - Amanda</div><div class="user-role">Comercial</div></div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div>
+        <div class="breadcrumb">Funil Comercial</div>
+        <div class="page-title">Pipeline de vendas</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-green" onclick="openSearchModal()">🔍 Buscar Leads no Google</button>
+      <button class="btn btn-primary" onclick="openNewLeadModal()">+ Novo Lead</button>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="tabs">
+      <div class="tab active">📤 Outreach</div>
+      <div class="tab">👁 Visita</div>
+    </div>
+    <div style="display:flex;gap:6px;font-size:12px;align-items:center;">
+      <button class="btn" style="font-size:11px;padding:5px 10px;">Hoje</button>
+      <button class="btn" style="font-size:11px;padding:5px 10px;">7d</button>
+      <button class="btn" style="font-size:11px;padding:5px 10px;">30d</button>
+      <button class="btn btn-primary" style="font-size:11px;padding:5px 10px;">Tudo</button>
+    </div>
+    <div class="search-wrap">
+      <span class="search-icon">🔎</span>
+      <input type="text" id="filterInput" placeholder="Buscar nome, cidade ou segmento..." oninput="filterCards()">
+    </div>
+    <select class="filter-select" onchange="filterCards()">
+      <option>Qualquer canal</option>
+      <option>WhatsApp</option>
+      <option>Ligação</option>
+      <option>Email</option>
+    </select>
+    <select class="filter-select" onchange="filterCards()">
+      <option>Todos os scores</option>
+      <option>Score Alto (70+)</option>
+      <option>Score Médio (50-69)</option>
+      <option>Score Baixo (&lt;50)</option>
+    </select>
+    <select class="filter-select" id="cityFilter" onchange="filterCards()">
+      <option>Todas as cidades</option>
+    </select>
+  </div>
+
+  <div id="statusBar" class="status-bar"></div>
+
+  <div class="kanban-wrap">
+    <div class="kanban-board" id="kanbanBoard">
+      <!-- Columns rendered by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- CONFIG PANEL -->
+<div class="config-panel" id="configPanel">
+  <div class="config-header">
+    <span style="font-weight:700;font-size:15px;">⚙️ Configurações</span>
+    <button class="modal-close" onclick="closeConfig()">✕</button>
+  </div>
+  <div class="config-body">
+    <div class="config-section">
+      <div class="config-section-title">🔑 Google Places API</div>
+      <div class="form-group">
+        <label class="form-label">Chave da API</label>
+        <input class="form-input" type="password" id="googleApiKey" placeholder="AIzaSy..." oninput="saveConfig()">
+      </div>
+      <div class="api-status pending" id="googleStatus">
+        <div class="api-status-dot"></div>
+        <span>Aguardando chave — <a href="https://console.cloud.google.com/apis/library/places-backend.googleapis.com" target="_blank" style="color:inherit">Obter chave gratuita</a></span>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <div class="config-section-title">💬 Evolution API (WhatsApp)</div>
+      <div class="form-group">
+        <label class="form-label">URL da Instância</label>
+        <input class="form-input" type="text" id="evoUrl" placeholder="https://api.seuservidor.com" oninput="saveConfig()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">API Key</label>
+        <input class="form-input" type="password" id="evoKey" placeholder="sua-api-key" oninput="saveConfig()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nome da Instância</label>
+        <input class="form-input" type="text" id="evoInstance" placeholder="minha-instancia" oninput="saveConfig()">
+      </div>
+      <div class="api-status pending" id="evoStatus">
+        <div class="api-status-dot"></div>
+        <span>Aguardando configuração — <a href="https://evolution-api.com" target="_blank" style="color:inherit">Ver documentação</a></span>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <div class="config-section-title">📝 Mensagem padrão WhatsApp</div>
+      <div class="form-group">
+        <textarea class="form-textarea" id="defaultMessage" oninput="saveConfig()" style="min-height:100px">Olá {{nome}}! 👋
+
+Vi que vocês são {{segmento}} em {{cidade}} e gostaria de apresentar uma solução que pode ajudar muito o seu negócio.
+
+Posso te mostrar em 5 minutos?</textarea>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Variáveis: {{nome}}, {{segmento}}, {{cidade}}</div>
+      </div>
+    </div>
+
+    <div class="config-section">
+      <div class="config-section-title">🏙️ Cidade padrão para busca</div>
+      <input class="form-input" type="text" id="defaultCity" placeholder="Ex: Belo Horizonte" oninput="saveConfig()">
+    </div>
+
+    <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="testApis()">✅ Testar conexões</button>
+  </div>
+</div>
+
+<!-- SEARCH MODAL -->
+<div class="modal-overlay" id="searchModal">
+  <div class="modal" style="width:560px">
+    <div class="modal-header">
+      <span class="modal-title">🔍 Buscar Empresas no Google</span>
+      <button class="modal-close" onclick="closeModal('searchModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row" style="margin-bottom:14px;">
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Cidade</label>
+          <input class="form-input" type="text" id="searchCity" placeholder="Ex: Belo Horizonte, MG">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Raio (km)</label>
+          <select class="form-select" id="searchRadius">
+            <option value="5000">5 km</option>
+            <option value="10000" selected>10 km</option>
+            <option value="25000">25 km</option>
+            <option value="50000">50 km</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Segmentos</label>
+        <div class="segments-grid" id="segmentsGrid">
+          <!-- renderizado por JS -->
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Palavra-chave adicional (opcional)</label>
+        <input class="form-input" type="text" id="searchKeyword" placeholder="Ex: distribuidora, atacado...">
+      </div>
+
+      <div id="searchResults" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <label class="form-label" style="margin:0">Resultados encontrados</label>
+          <span id="resultsCount" style="font-size:12px;color:var(--text-muted)"></span>
+        </div>
+        <div class="results-list" id="resultsList"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('searchModal')">Cancelar</button>
+      <button class="btn" id="addSelectedBtn" style="display:none" onclick="addSelectedLeads()">+ Adicionar selecionados (<span id="selectedCount">0</span>)</button>
+      <button class="btn btn-primary" onclick="runSearch()">🔍 Buscar agora</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW LEAD MODAL -->
+<div class="modal-overlay" id="newLeadModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">➕ Novo Lead Manual</span>
+      <button class="modal-close" onclick="closeModal('newLeadModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Nome da empresa</label>
+        <input class="form-input" type="text" id="newName" placeholder="Ex: Mercadinho Central">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Segmento</label>
+          <select class="form-select" id="newSegment">
+            <option>mercadinho</option><option>padaria</option><option>farmácia</option>
+            <option>moda</option><option>distribuidora</option><option>autopeças</option>
+            <option>motopeças</option><option>fábrica</option><option>outros</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cidade/UF</label>
+          <input class="form-input" type="text" id="newCity" placeholder="Ex: Belo Horizonte/MG">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">WhatsApp</label>
+          <input class="form-input" type="text" id="newPhone" placeholder="5531999990000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Score (0-100)</label>
+          <input class="form-input" type="number" id="newScore" placeholder="70" min="0" max="100">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('newLeadModal')">Cancelar</button>
+      <button class="btn btn-primary" onclick="addManualLead()">+ Adicionar Lead</button>
+    </div>
+  </div>
+</div>
+
+<!-- WHATSAPP MODAL -->
+<div class="modal-overlay" id="waModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">💬 Enviar WhatsApp</span>
+      <button class="modal-close" onclick="closeModal('waModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="waLeadInfo" style="padding:10px;background:#f8fafc;border-radius:8px;margin-bottom:14px;font-size:13px;"></div>
+      <div class="form-group">
+        <label class="form-label">Número (com DDI)</label>
+        <input class="form-input" type="text" id="waPhone" placeholder="5531999990000">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mensagem</label>
+        <textarea class="form-textarea" id="waMessage" style="min-height:120px"></textarea>
+      </div>
+      <div class="wa-preview">
+        <div class="wa-bubble" id="waBubble"></div>
+        <div class="wa-time">Agora · ✓✓</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('waModal')">Cancelar</button>
+      <button class="btn btn-green" onclick="sendWhatsApp()">📤 Enviar mensagem</button>
+    </div>
+  </div>
+</div>
+
+<!-- LEAD DETAIL MODAL -->
+<div class="modal-overlay" id="leadModal">
+  <div class="modal" style="width:480px">
+    <div class="modal-header">
+      <span class="modal-title" id="leadModalTitle"></span>
+      <button class="modal-close" onclick="closeModal('leadModal')">✕</button>
+    </div>
+    <div class="modal-body" id="leadModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('leadModal')">Fechar</button>
+      <button class="btn" onclick="moveLeadForward()" id="moveBtn">Avançar estágio →</button>
+      <button class="btn btn-green" onclick="openWaFromLead()" id="waBtn">💬 Enviar WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLUMNS = [
+  { id: 'novo',       name: 'Novo',          color: '#718096' },
+  { id: 'abordado',   name: 'Abordado',      color: '#f5a623' },
+  { id: 'conversa',   name: 'Em conversa',   color: '#3b82f6' },
+  { id: 'qualificado',name: 'Qualificado',   color: '#8b5cf6' },
+  { id: 'negociacao', name: 'Negociação',    color: '#f97316' },
+  { id: 'fechado',    name: 'Fechado · Ganho', color: '#10b981' },
+];
+
+const SEGMENTS = [
+  'varejo','autopeças','motopeças','padaria','mercadinho',
+  'moda','farmácia','distribuidora','fábrica','restaurante',
+  'supermercado','loja','outros'
+];
+
+const SEGMENT_TYPES = {
+  'varejo': 'store',
+  'autopeças': 'car_repair',
+  'motopeças': 'car_repair',
+  'padaria': 'bakery',
+  'mercadinho': 'supermarket',
+  'moda': 'clothing_store',
+  'farmácia': 'pharmacy',
+  'distribuidora': 'warehouse',
+  'fábrica': 'factory',
+  'restaurante': 'restaurant',
+  'supermercado': 'supermarket',
+  'loja': 'store',
+  'outros': 'establishment',
+};
+
+let leads = JSON.parse(localStorage.getItem('crm_leads') || 'null') || [
+  { id:1, name:'Padaria e confeitaria Casa do Pão', segment:'padaria', city:'Belo Horizonte/MG', score:65, col:'novo', phone:'5531991110001' },
+  { id:2, name:'Mercadinho Bicalho • Bar do Nivaldo', segment:'mercadinho', city:'Belo Horizonte/MG', score:82, col:'novo', phone:'5531991110002' },
+  { id:3, name:'Super Mercados BH', segment:'mercadinho', city:'Belo Horizonte/MG', score:38, col:'novo', phone:'5531991110003' },
+  { id:4, name:'• M A R I A H • Moda Feminina', segment:'moda', city:'Belo Horizonte/MG', score:62, col:'novo', phone:'5531991110004' },
+  { id:5, name:'Casa Help!! Moda Feminina', segment:'moda', city:'Belo Horizonte/MG', score:72, col:'novo', phone:'5531991110005' },
+  { id:6, name:'Missbela moda feminina | varejo', segment:'moda', city:'Belo Horizonte/MG', score:35, col:'novo', phone:'5531991110006' },
+  { id:7, name:'MINAS TOP DISTRIBUIDORA', segment:'distribuidora', city:'Belo Horizonte/MG', score:55, col:'abordado', phone:'5531991110007' },
+  { id:8, name:'Distribuidora De Bebidas E Mercearia Jardim', segment:'distribuidora', city:'Belo Horizonte/MG', score:68, col:'abordado', phone:'5531991110008' },
+  { id:9, name:'JB Distribuidora de Bebidas', segment:'distribuidora', city:'Belo Horizonte/MG', score:72, col:'abordado', phone:'5531991110009' },
+  { id:10, name:'Pai & filho Distribuidora de bebidas', segment:'distribuidora', city:'Belo Horizonte/MG', score:62, col:'abordado', phone:'5531991110010' },
+  { id:11, name:'Borel Distribuidora', segment:'distribuidora', city:'Belo Horizonte/MG', score:45, col:'abordado', phone:'5531991110011' },
+  { id:12, name:'Drogaria Pro Saúde', segment:'farmácia', city:'Belo Horizonte/MG', score:78, col:'conversa', phone:'5531991110012' },
+  { id:13, name:'Farmácia do João', segment:'farmácia', city:'Belo Horizonte/MG', score:78, col:'conversa', phone:'5531991110013' },
+  { id:14, name:'Drogaria Farma 31', segment:'farmácia', city:'Belo Horizonte/MG', score:82, col:'conversa', phone:'5531991110014' },
+  { id:15, name:'Construmaz - Materiais para Construção', segment:'varejo', city:'Belo Horizonte/MG', score:78, col:'conversa', phone:'5531991110015' },
+  { id:16, name:'Oficina Brothers motos peças e acessórios', segment:'motopeças', city:'Belo Horizonte/MG', score:62, col:'conversa', phone:'5531991110016' },
+  { id:17, name:'Mercado Vitória', segment:'mercadinho', city:'Belo Horizonte/MG', score:72, col:'conversa', phone:'5531991110017' },
+  { id:18, name:'Distribuidora de Bebidas Campo Alegre', segment:'distribuidora', city:'Belo Horizonte/MG', score:72, col:'qualificado', phone:'5531991110018' },
+];
+
+let config = JSON.parse(localStorage.getItem('crm_config') || '{}');
+let selectedLeadId = null;
+let selectedSearchItems = new Set();
+let nextId = Math.max(...leads.map(l=>l.id), 0) + 1;
+
+function saveLeads() { localStorage.setItem('crm_leads', JSON.stringify(leads)); }
+function saveConfig() {
+  config.googleApiKey = document.getElementById('googleApiKey').value;
+  config.evoUrl = document.getElementById('evoUrl').value;
+  config.evoKey = document.getElementById('evoKey').value;
+  config.evoInstance = document.getElementById('evoInstance').value;
+  config.defaultMessage = document.getElementById('defaultMessage').value;
+  config.defaultCity = document.getElementById('defaultCity').value;
+  localStorage.setItem('crm_config', JSON.stringify(config));
+}
+
+function scoreClass(s) {
+  if (s >= 70) return 'score-high';
+  if (s >= 50) return 'score-mid';
+  return 'score-low';
+}
+
+function renderBoard() {
+  const board = document.getElementById('kanbanBoard');
+  const filter = document.getElementById('filterInput').value.toLowerCase();
+  const cityFilter = document.getElementById('cityFilter').value;
+
+  const cities = [...new Set(leads.map(l => l.city))];
+  const cityEl = document.getElementById('cityFilter');
+  const curCity = cityEl.value;
+  cityEl.innerHTML = '<option>Todas as cidades</option>' + cities.map(c => `<option${c===curCity?' selected':''}>${c}</option>`).join('');
+
+  board.innerHTML = COLUMNS.map(col => {
+    const colLeads = leads.filter(l => {
+      if (l.col !== col.id) return false;
+      if (filter && !l.name.toLowerCase().includes(filter) && !l.city.toLowerCase().includes(filter) && !l.segment.toLowerCase().includes(filter)) return false;
+      if (cityFilter && cityFilter !== 'Todas as cidades' && l.city !== cityFilter) return false;
+      return true;
+    });
+
+    const cards = colLeads.map(l => `
+      <div class="lead-card" onclick="openLead(${l.id})" id="card-${l.id}">
+        <div class="lead-card-header">
+          <div class="lead-name">${l.name}</div>
+          <div class="lead-score ${scoreClass(l.score)}">${l.score}</div>
+        </div>
+        <div class="lead-tags">
+          <span class="tag">${l.segment}</span>
+          <span class="tag city">${l.city}</span>
+        </div>
+        <div class="lead-actions" onclick="event.stopPropagation()">
+          <button class="action-btn call" onclick="showStatus('📞 Ligação registrada para '+${JSON.stringify(l.name)},'#dbeafe','#1d4ed8')">📞</button>
+          <button class="action-btn whatsapp" onclick="openWa(${l.id})">💬 WhatsApp</button>
+        </div>
+      </div>
+    `).join('');
+
+    return `
+      <div class="kanban-col">
+        <div class="col-header">
+          <div class="col-dot" style="background:${col.color}"></div>
+          <div class="col-name">${col.name}</div>
+          <div class="col-count">${colLeads.length}</div>
+        </div>
+        <div class="col-body" ondragover="event.preventDefault()" ondrop="dropLead(event,'${col.id}')">
+          ${cards || `<div class="empty-col">Solte leads aqui</div>`}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // enable drag on cards
+  board.querySelectorAll('.lead-card').forEach(card => {
+    card.draggable = true;
+    card.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', card.id.replace('card-','')));
+  });
+}
+
+function dropLead(e, colId) {
+  const id = parseInt(e.dataTransfer.getData('text/plain'));
+  const lead = leads.find(l => l.id === id);
+  if (lead) { lead.col = colId; saveLeads(); renderBoard(); }
+}
+
+function filterCards() { renderBoard(); }
+
+function openLead(id) {
+  selectedLeadId = id;
+  const l = leads.find(x => x.id === id);
+  const colIdx = COLUMNS.findIndex(c => c.id === l.col);
+  document.getElementById('leadModalTitle').textContent = l.name;
+  document.getElementById('leadModalBody').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div style="background:#f8fafc;padding:10px;border-radius:8px">
+        <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Segmento</div>
+        <div style="font-weight:600">${l.segment}</div>
+      </div>
+      <div style="background:#f8fafc;padding:10px;border-radius:8px">
+        <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Cidade</div>
+        <div style="font-weight:600">${l.city}</div>
+      </div>
+      <div style="background:#f8fafc;padding:10px;border-radius:8px">
+        <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Score</div>
+        <div style="font-weight:700;font-size:18px;color:${l.score>=70?'#15803d':l.score>=50?'#92400e':'#b91c1c'}">${l.score}</div>
+      </div>
+      <div style="background:#f8fafc;padding:10px;border-radius:8px">
+        <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Estágio</div>
+        <div style="font-weight:600">${COLUMNS[colIdx].name}</div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">WhatsApp</div>
+    <input class="form-input" value="${l.phone||''}" onchange="leads.find(x=>x.id==${id}).phone=this.value;saveLeads()">
+  `;
+  document.getElementById('moveBtn').style.display = colIdx < COLUMNS.length - 1 ? '' : 'none';
+  openModal('leadModal');
+}
+
+function moveLeadForward() {
+  const l = leads.find(x => x.id === selectedLeadId);
+  const idx = COLUMNS.findIndex(c => c.id === l.col);
+  if (idx < COLUMNS.length - 1) {
+    l.col = COLUMNS[idx + 1].id;
+    saveLeads(); renderBoard(); closeModal('leadModal');
+    showStatus(`✅ ${l.name} movido para ${COLUMNS[idx+1].name}`, '#f0fdf4', '#15803d');
+  }
+}
+
+function openWa(id) {
+  const l = leads.find(x => x.id === id);
+  selectedLeadId = id;
+  const msg = (config.defaultMessage || 'Olá {{nome}}! Gostaria de apresentar nossa solução.')
+    .replace('{{nome}}', l.name)
+    .replace('{{segmento}}', l.segment)
+    .replace('{{cidade}}', l.city);
+  document.getElementById('waLeadInfo').innerHTML = `<strong>${l.name}</strong> · ${l.segment} · ${l.city}`;
+  document.getElementById('waPhone').value = l.phone || '';
+  document.getElementById('waMessage').value = msg;
+  document.getElementById('waBubble').textContent = msg;
+  document.getElementById('waMessage').oninput = () => {
+    document.getElementById('waBubble').textContent = document.getElementById('waMessage').value;
+  };
+  openModal('waModal');
+}
+
+function openWaFromLead() { closeModal('leadModal'); openWa(selectedLeadId); }
+
+async function sendWhatsApp() {
+  const phone = document.getElementById('waPhone').value.replace(/\D/g,'');
+  const message = document.getElementById('waMessage').value;
+  const l = leads.find(x => x.id === selectedLeadId);
+
+  if (!config.evoUrl || !config.evoKey || !config.evoInstance) {
+    // Fallback: open WhatsApp Web
+    const encoded = encodeURIComponent(message);
+    window.open(`https://wa.me/${phone}?text=${encoded}`, '_blank');
+    if (l) { l.col = l.col === 'novo' ? 'abordado' : l.col; saveLeads(); renderBoard(); }
+    closeModal('waModal');
+    showStatus('💬 WhatsApp Web aberto. Configure a Evolution API para disparos automáticos.', '#fef9c3', '#92400e');
+    return;
+  }
+
+  try {
+    const resp = await fetch(`${config.evoUrl}/message/sendText/${config.evoInstance}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': config.evoKey },
+      body: JSON.stringify({ number: phone, text: message })
+    });
+    const data = await resp.json();
+    if (resp.ok) {
+      if (l) { l.col = l.col === 'novo' ? 'abordado' : l.col; saveLeads(); renderBoard(); }
+      closeModal('waModal');
+      showStatus(`✅ Mensagem enviada para ${l?.name || phone}!`, '#f0fdf4', '#15803d');
+    } else {
+      alert('Erro ao enviar: ' + (data.message || JSON.stringify(data)));
+    }
+  } catch(e) {
+    alert('Erro de conexão com Evolution API: ' + e.message);
+  }
+}
+
+// SEARCH
+let selectedSegments = new Set(['mercadinho','padaria','farmácia','distribuidora']);
+
+function renderSegments() {
+  document.getElementById('segmentsGrid').innerHTML = SEGMENTS.map(s =>
+    `<button class="seg-btn${selectedSegments.has(s)?' active':''}" onclick="toggleSeg('${s}')">${s}</button>`
+  ).join('');
+}
+
+function toggleSeg(s) {
+  if (selectedSegments.has(s)) selectedSegments.delete(s);
+  else selectedSegments.add(s);
+  renderSegments();
+}
+
+async function runSearch() {
+  const city = document.getElementById('searchCity').value || config.defaultCity || 'Brasil';
+  const keyword = document.getElementById('searchKeyword').value;
+  const segs = [...selectedSegments];
+
+  if (!config.googleApiKey) {
+    // demo mode
+    const mockData = segs.flatMap(seg => [
+      { id: 'mock_'+Math.random(), name: `${seg.charAt(0).toUpperCase()+seg.slice(1)} ${city} ${Math.floor(Math.random()*99)+1}`, segment: seg, city: city+'/XX', score: Math.floor(Math.random()*40)+55, phone:'' },
+      { id: 'mock_'+Math.random(), name: `${seg} Central de ${city}`, segment: seg, city: city+'/XX', score: Math.floor(Math.random()*40)+50, phone:'' },
+    ]);
+    renderSearchResults(mockData);
+    showStatus('⚠️ Modo demo. Configure a Google Places API para resultados reais.', '#fef9c3', '#92400e');
+    return;
+  }
+
+  document.getElementById('resultsList').innerHTML = '<div class="loading"><span class="spinner"></span>Buscando empresas...</div>';
+  document.getElementById('searchResults').style.display = 'block';
+  document.getElementById('addSelectedBtn').style.display = 'none';
+
+  const allResults = [];
+  for (const seg of segs.slice(0, 3)) {
+    const query = `${keyword || seg} em ${city}`;
+    try {
+      const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${config.googleApiKey}&language=pt-BR`;
+      const r = await fetch(url);
+      const d = await r.json();
+      if (d.results) {
+        d.results.slice(0,5).forEach(p => allResults.push({
+          id: p.place_id, name: p.name,
+          segment: seg, city: (p.formatted_address||'').split(',').slice(-2).join(',').trim(),
+          score: Math.round((p.rating||3)*14),
+          phone: p.formatted_phone_number || ''
+        }));
+      }
+    } catch(e) { console.warn(e); }
+  }
+  renderSearchResults(allResults);
+}
+
+function renderSearchResults(results) {
+  selectedSearchItems.clear();
+  document.getElementById('selectedCount').textContent = '0';
+  document.getElementById('resultsCount').textContent = results.length + ' empresas';
+  document.getElementById('resultsList').innerHTML = results.length ? results.map(r => `
+    <div class="result-item" id="ri-${r.id}" onclick="toggleSearchItem('${r.id}', ${JSON.stringify(r).replace(/"/g,'&quot;')})">
+      <div>
+        <div class="result-name">${r.name}</div>
+        <div class="result-meta">${r.segment} · ${r.city} · Score ${r.score}</div>
+      </div>
+      <span class="result-check" style="display:none">✓</span>
+    </div>
+  `).join('') : '<div class="loading">Nenhum resultado encontrado.</div>';
+  document.getElementById('searchResults').style.display = 'block';
+  window._searchResults = results;
+}
+
+function toggleSearchItem(id, data) {
+  const el = document.getElementById('ri-'+id);
+  if (selectedSearchItems.has(id)) {
+    selectedSearchItems.delete(id);
+    el.classList.remove('selected');
+    el.querySelector('.result-check').style.display = 'none';
+  } else {
+    selectedSearchItems.add(id);
+    el.classList.add('selected');
+    el.querySelector('.result-check').style.display = '';
+  }
+  document.getElementById('selectedCount').textContent = selectedSearchItems.size;
+  document.getElementById('addSelectedBtn').style.display = selectedSearchItems.size > 0 ? '' : 'none';
+  el._data = data;
+}
+
+function addSelectedLeads() {
+  const results = window._searchResults || [];
+  results.filter(r => selectedSearchItems.has(r.id)).forEach(r => {
+    if (!leads.find(l => l.name === r.name)) {
+      leads.push({ id: nextId++, name: r.name, segment: r.segment, city: r.city, score: r.score, col: 'novo', phone: r.phone });
+    }
+  });
+  saveLeads(); renderBoard(); closeModal('searchModal');
+  showStatus(`✅ ${selectedSearchItems.size} leads adicionados ao pipeline!`, '#f0fdf4', '#15803d');
+}
+
+function addManualLead() {
+  const name = document.getElementById('newName').value.trim();
+  if (!name) { alert('Informe o nome da empresa.'); return; }
+  leads.push({
+    id: nextId++, name,
+    segment: document.getElementById('newSegment').value,
+    city: document.getElementById('newCity').value || 'Não informado',
+    score: parseInt(document.getElementById('newScore').value) || 60,
+    col: 'novo', phone: document.getElementById('newPhone').value
+  });
+  saveLeads(); renderBoard(); closeModal('newLeadModal');
+  showStatus('✅ Lead adicionado com sucesso!', '#f0fdf4', '#15803d');
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function openSearchModal() { renderSegments(); openModal('searchModal'); }
+function openNewLeadModal() { openModal('newLeadModal'); }
+function openConfig() { document.getElementById('configPanel').classList.add('open'); }
+function closeConfig() { document.getElementById('configPanel').classList.remove('open'); }
+
+function showStatus(msg, bg, color) {
+  const bar = document.getElementById('statusBar');
+  bar.textContent = msg;
+  bar.style.background = bg; bar.style.color = color; bar.style.borderTopColor = color+'44';
+  bar.classList.add('visible');
+  setTimeout(() => bar.classList.remove('visible'), 4000);
+}
+
+function testApis() {
+  saveConfig();
+  const gKey = document.getElementById('googleApiKey').value;
+  const evoUrl = document.getElementById('evoUrl').value;
+  const evoKey = document.getElementById('evoKey').value;
+
+  document.getElementById('googleStatus').className = 'api-status ' + (gKey ? 'ok' : 'pending');
+  document.getElementById('googleStatus').innerHTML = gKey
+    ? '<div class="api-status-dot"></div>Chave configurada ✓'
+    : '<div class="api-status-dot"></div>Aguardando chave';
+
+  document.getElementById('evoStatus').className = 'api-status ' + ((evoUrl && evoKey) ? 'ok' : 'pending');
+  document.getElementById('evoStatus').innerHTML = (evoUrl && evoKey)
+    ? '<div class="api-status-dot"></div>Evolution API configurada ✓'
+    : '<div class="api-status-dot"></div>Aguardando configuração';
+
+  showStatus('⚙️ Configurações salvas!', '#f0fdf4', '#15803d');
+}
+
+// Load config into form
+if (config.googleApiKey) document.getElementById('googleApiKey').value = config.googleApiKey;
+if (config.evoUrl) document.getElementById('evoUrl').value = config.evoUrl;
+if (config.evoKey) document.getElementById('evoKey').value = config.evoKey;
+if (config.evoInstance) document.getElementById('evoInstance').value = config.evoInstance;
+if (config.defaultMessage) document.getElementById('defaultMessage').value = config.defaultMessage;
+if (config.defaultCity) document.getElementById('defaultCity').value = config.defaultCity;
+
+renderBoard();
+</script>
+</body>
+</html>
